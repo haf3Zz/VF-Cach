@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Vodafone Cash SMS</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="icon" href="https://ali-printing.com/wp-content/uploads/2023/03/Vodafone-Cash-Logo-200x266.png" type="image/x-icon">
+
+    <style>
+        .balance {
+            color: white;
+            font-weight: bolder;
+            font-size: xx-large;
+            font-family: monospace;
+            background-color: #ff0000;
+            padding: 10px 20px;
+            border-radius: 5px;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+        }
+
+        h3 {
+            text-align: center;
+            color: #ff0000;
+            font-weight: bold;
+            margin-top: 20px;
+            
+        }
+
+        .container {
+            position: relative;
+            min-height: 100vh;
+            background-color: #faf9f8;
+            padding-top: 60px;
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto 20px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        #message-list {
+            margin-top: 20px;
+        }
+    </style>
+
+    <script>
+        let lastMessageCount = 0;
+
+        async function checkForNewMessages() {
+            try {
+                const response = await fetch("/messages");
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                const data = await response.json();
+                const currentMessageCount = data.messages.length;
+                if (currentMessageCount > lastMessageCount) {
+                    updateMessages(data.messages);
+                    fetchBalance();
+                }
+                lastMessageCount = currentMessageCount;
+            } catch (error) {
+                console.error("There was a problem with the fetch operation:", error);
+            }
+        }
+
+        function updateMessages(messages) {
+            const messageList = document.getElementById("message-list");
+            messageList.innerHTML = "";
+            messages.forEach(message => {
+                const li = document.createElement("li");
+                li.className = "list-group-item";
+                li.innerHTML = `<strong>${message.sender}:</strong> ${message.content}`;
+                messageList.appendChild(li);
+            });
+        }
+
+        async function fetchBalance() {
+            try {
+                const response = await fetch("/balance");
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                const data = await response.json();
+                document.querySelector(".balance").textContent = `$${data.balance}`;
+            } catch (error) {
+                document.querySelector(".balance").textContent = "000000";
+                console.error("There was a problem with the fetch operation:", error);
+            }
+        }
+
+        window.onload = () => {
+            fetchBalance();
+            checkForNewMessages();
+            setInterval(checkForNewMessages, 5000);
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <b class="balance">000000</b>
+        <h3>Vodafone Cash</h3>
+        <img src="https://ali-printing.com/wp-content/uploads/2023/03/Vodafone-Cash-Logo-200x266.png" class="logo" height="120" width="100">
+        <ul id="message-list" class="list-group">
+        </ul>
+    </div>
+</body>
+</html>
